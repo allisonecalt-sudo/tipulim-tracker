@@ -604,6 +604,7 @@ body {
 <div class="tabs">
   <button class="tab active" data-tab="monthly" onclick="switchTab('monthly')">חודשי</button>
   <button class="tab" data-tab="shelet" onclick="switchTab('shelet')">שלטים</button>
+  <button class="tab" data-tab="todos" onclick="switchTab('todos')">לעשות</button>
   <button class="tab" data-tab="kids" onclick="switchTab('kids')">ילדים</button>
 </div>
 
@@ -700,6 +701,7 @@ let entries = [];
 let kids = [];
 let codes = [];
 let sheletEntries = [];
+let todos = [];
 let activeTab = 'monthly';
 let debounceTimers = {};
 
@@ -709,6 +711,13 @@ async function init() {
   codes = data || [];
   await loadMonth(currentYear, currentMonth);
   await loadKids();
+  await loadTodos();
+}
+
+async function loadTodos() {
+  const { data } = await sb.from('ot_todos').select('*').order('sort_order').order('created_at');
+  todos = data || [];
+  if (activeTab === 'todos') renderTodos();
 }
 
 async function loadKids() {
@@ -1009,12 +1018,99 @@ async function deleteShelet(id) {
   renderShelet();
 }
 
+// ── Render Todos ──
+function renderTodos() {
+  const content = document.getElementById('content');
+  const doneCount = todos.filter(t => t.is_done).length;
+
+  let html = `<div style="padding: 16px;">
+    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+      <input type="text" id="todoInput" placeholder="הוסיפי משימה..."
+             style="flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 14px; direction: rtl;"
+             onkeydown="if(event.key==='Enter') addTodo()">
+      <button class="btn btn-primary" onclick="addTodo()">+</button>
+    </div>`;
+
+  if (todos.length === 0) {
+    html += `<div style="text-align: center; padding: 40px; color: var(--muted);">אין משימות</div>`;
+  } else {
+    // Active todos first, then done
+    const active = todos.filter(t => !t.is_done);
+    const done = todos.filter(t => t.is_done);
+
+    active.forEach(todo => {
+      html += renderTodoItem(todo);
+    });
+
+    if (done.length > 0) {
+      html += `<div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border);">
+        <span style="font-size: 12px; color: var(--muted);">הושלמו (${done.length})</span>
+      </div>`;
+      done.forEach(todo => {
+        html += renderTodoItem(todo);
+      });
+    }
+  }
+
+  html += `</div>`;
+  content.innerHTML = html;
+}
+
+function renderTodoItem(todo) {
+  return `
+    <div style="display: flex; align-items: center; gap: 10px; padding: 8px 4px; border-bottom: 1px solid var(--border); ${todo.is_done ? 'opacity: .5;' : ''}">
+      <input type="checkbox" ${todo.is_done ? 'checked' : ''} onchange="toggleTodo('${todo.id}')"
+             style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent);">
+      <input type="text" value="${escHtml(todo.text)}"
+             onchange="updateTodoText('${todo.id}', this.value)"
+             style="flex: 1; border: none; background: transparent; font-family: inherit; font-size: 14px; direction: rtl; padding: 4px 0; ${todo.is_done ? 'text-decoration: line-through;' : ''}">
+      <button onclick="deleteTodo('${todo.id}')"
+              style="background: none; border: none; color: var(--red); cursor: pointer; font-size: 16px; padding: 4px;">✕</button>
+    </div>`;
+}
+
+async function addTodo() {
+  const input = document.getElementById('todoInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const maxOrder = todos.length > 0 ? Math.max(...todos.map(t => t.sort_order)) : 0;
+  const { data, error } = await sb.from('ot_todos').insert({ text, sort_order: maxOrder + 1 }).select().single();
+  if (error) { alert('שגיאה: ' + error.message); return; }
+
+  todos.push(data);
+  input.value = '';
+  renderTodos();
+}
+
+async function toggleTodo(id) {
+  const todo = todos.find(t => t.id === id);
+  if (!todo) return;
+  const newDone = !todo.is_done;
+  await sb.from('ot_todos').update({ is_done: newDone }).eq('id', id);
+  todo.is_done = newDone;
+  renderTodos();
+}
+
+async function updateTodoText(id, text) {
+  await sb.from('ot_todos').update({ text: text.trim() }).eq('id', id);
+  const todo = todos.find(t => t.id === id);
+  if (todo) todo.text = text.trim();
+}
+
+async function deleteTodo(id) {
+  await sb.from('ot_todos').delete().eq('id', id);
+  todos = todos.filter(t => t.id !== id);
+  renderTodos();
+}
+
 // ── Tab Switching ──
 function switchTab(tab) {
   activeTab = tab;
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   if (tab === 'monthly') renderMonthly();
   else if (tab === 'shelet') renderShelet();
+  else if (tab === 'todos') renderTodos();
   else if (tab === 'kids') renderKids();
 }
 
