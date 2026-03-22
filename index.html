@@ -613,6 +613,17 @@ body {
     <div class="stat" id="statSheletDiff" style="padding-top: 16px;"></div>
   </div>
 </div>
+<!-- Backup Options Ribbon -->
+<div style="background: var(--surface); border-bottom: 1px solid var(--border); padding: 8px 16px; display: flex; justify-content: center; gap: 24px;">
+  <div style="display: flex; align-items: center; gap: 6px;">
+    <span style="font-size: 12px; color: var(--muted);">סיכומים (50038)</span>
+    <span class="entry-code code-50038" style="font-size: 13px; font-weight: 700; cursor: default;" id="statSikumim">0</span>
+  </div>
+  <div style="display: flex; align-items: center; gap: 6px;">
+    <span style="font-size: 12px; color: var(--muted);">הדרכות (50016)</span>
+    <span class="entry-code code-50016" style="font-size: 13px; font-weight: 700; cursor: default;" id="statHadrachot">0</span>
+  </div>
+</div>
 
 <!-- Tabs -->
 <div class="tabs">
@@ -823,6 +834,17 @@ function updateSummary() {
   } else {
     sDiffEl.innerHTML = `<span style="color: var(--green); font-size: 13px; font-weight: 600;">✓</span>`;
   }
+
+  // Backup options: projected minus already logged
+  const sikumimAvail = monthData.sikumim_available || 0;
+  const sikumimUsed = entries.filter(e => e.treatment_code === 50038 && e.tafukti === 1).length;
+  const sikumimLeft = Math.max(0, sikumimAvail - sikumimUsed);
+  document.getElementById('statSikumim').textContent = `${sikumimLeft} / ${sikumimAvail}`;
+
+  const hadrachotAvail = monthData.extra_hadrachot || 0;
+  const hadrachotUsed = entries.filter(e => e.treatment_code === 50016 && e.tafukti === 1).length;
+  const hadrachotLeft = Math.max(0, hadrachotAvail - hadrachotUsed);
+  document.getElementById('statHadrachot').textContent = `${hadrachotLeft} / ${hadrachotAvail}`;
 }
 
 // ── Render Monthly ──
