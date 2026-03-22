@@ -60,30 +60,24 @@ body {
 .month-selector {
   display: flex;
   align-items: center;
-  gap: 8px;
 }
 
-.month-selector button {
+.month-dropdown {
   background: rgba(255,255,255,.2);
-  border: none;
+  border: 1px solid rgba(255,255,255,.3);
   color: #fff;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-size: 18px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.month-selector button:hover { background: rgba(255,255,255,.3); }
-
-.month-selector .month-label {
+  padding: 6px 12px;
+  border-radius: 6px;
   font-size: 15px;
   font-weight: 500;
-  min-width: 100px;
-  text-align: center;
+  font-family: inherit;
+  cursor: pointer;
+  direction: rtl;
+}
+
+.month-dropdown option {
+  background: var(--surface);
+  color: var(--text);
 }
 
 .header-actions {
@@ -585,9 +579,7 @@ body {
 <div class="header">
   <h1>מעקב תפוקות</h1>
   <div class="month-selector">
-    <button onclick="changeMonth(1)" title="חודש הבא">&#8249;</button>
-    <span class="month-label" id="monthLabel"></span>
-    <button onclick="changeMonth(-1)" title="חודש קודם">&#8250;</button>
+    <select id="monthDropdown" class="month-dropdown" onchange="selectMonth(this.value)"></select>
   </div>
   <div class="header-actions">
     <button class="header-btn" onclick="showSettings()">&#9881;</button>
@@ -755,13 +747,27 @@ async function loadMonth(year, month) {
 }
 
 function updateMonthLabel() {
-  document.getElementById('monthLabel').textContent = `${HEBREW_MONTHS[currentMonth - 1]} ${currentYear}`;
+  const dd = document.getElementById('monthDropdown');
+  // Build options from current work year (Sept to Aug)
+  dd.innerHTML = '';
+  const startMonth = 9; // September
+  const startYear = currentYear - (currentMonth < 9 ? 1 : 0);
+  for (let i = 0; i < 12; i++) {
+    let m = startMonth + i;
+    let y = startYear;
+    if (m > 12) { m -= 12; y++; }
+    const opt = document.createElement('option');
+    opt.value = `${y}-${m}`;
+    opt.textContent = `${HEBREW_MONTHS[m - 1]} ${y}`;
+    if (y === currentYear && m === currentMonth) opt.selected = true;
+    dd.appendChild(opt);
+  }
 }
 
-function changeMonth(dir) {
-  currentMonth += dir;
-  if (currentMonth > 12) { currentMonth = 1; currentYear++; }
-  if (currentMonth < 1) { currentMonth = 12; currentYear--; }
+function selectMonth(val) {
+  const [y, m] = val.split('-').map(Number);
+  currentYear = y;
+  currentMonth = m;
   loadMonth(currentYear, currentMonth);
 }
 
