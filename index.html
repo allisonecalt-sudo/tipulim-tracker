@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מעקב תפוקות — כללית</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0;
+  --surface: #fff;
+  --text: #1a1915;
+  --muted: #6b6960;
+  --border: #e0ddd5;
+  --accent: #2d6a4f;
+  --accent-soft: rgba(45,106,79,.10);
+  --green: #2d6a4f;
+  --green-light: #d4edda;
+  --pink: #f8d7da;
+  --pink-dark: #c06070;
+  --yellow: #fff3cd;
+  --yellow-dark: #856404;
+  --purple: #e8d5f5;
+  --purple-dark: #6f42c1;
+  --gray-light: #f0f0ec;
+  --red: #dc3545;
+  --shadow: 0 1px 3px rgba(0,0,0,.08);
+  --radius: 8px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Heebo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--accent);
+  color: #fff;
+  padding: 12px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.header h1 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.month-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.month-selector button {
+  background: rgba(255,255,255,.2);
+  border: none;
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.month-selector button:hover { background: rgba(255,255,255,.3); }
+
+.month-selector .month-label {
+  font-size: 15px;
+  font-weight: 500;
+  min-width: 100px;
+  text-align: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.header-btn {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.3);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.header-btn:hover { background: rgba(255,255,255,.25); }
+
+/* ── Summary Ribbon ── */
+.summary {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  position: sticky;
+  top: 56px;
+  z-index: 90;
+  box-shadow: var(--shadow);
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stat-value.warning { color: var(--yellow-dark); }
+.stat-value.danger { color: var(--red); }
+
+.stat-sub {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.progress-bar {
+  height: 4px;
+  background: var(--gray-light);
+  border-radius: 2px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width .3s;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+}
+
+.tab {
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  font-family: inherit;
+}
+
+.tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ── Main Content ── */
+.content {
+  padding: 0 0 80px;
+}
+
+/* ── Day Group ── */
+.day-group {
+  margin: 8px 0;
+}
+
+.day-header {
+  background: var(--surface);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+
+.day-header:hover { background: var(--gray-light); }
+
+.day-title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.day-summary {
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  gap: 12px;
+}
+
+.day-summary .count {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* ── Entry Row ── */
+.entry-row {
+  background: var(--surface);
+  padding: 8px 16px;
+  display: grid;
+  grid-template-columns: 50px 1fr 70px 90px 36px;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+  min-height: 48px;
+  transition: background .2s;
+}
+
+.entry-row.status-logged { background: #fff; }
+.entry-row.status-done_not_logged { background: var(--pink); }
+.entry-row.status-projected.code-50011 { background: var(--yellow); }
+.entry-row.status-projected.code-50008 { background: var(--purple); }
+.entry-row.status-projected.code-50016 { background: var(--yellow); }
+.entry-row.status-projected.code-50042 { background: var(--yellow); }
+.entry-row.status-projected.code-50038 { background: var(--yellow); }
+.entry-row.status-cancelled { background: var(--gray-light); opacity: .6; }
+.entry-row.status-blank { background: var(--gray-light); opacity: .4; }
+
+.entry-time {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.entry-name {
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  width: 100%;
+  padding: 4px 0;
+  direction: rtl;
+}
+
+.entry-name:focus {
+  outline: none;
+  border-bottom: 2px solid var(--accent);
+}
+
+.entry-name::placeholder {
+  color: #ccc;
+  font-weight: 300;
+}
+
+.entry-code {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.entry-code.code-50008 { background: #e8d5f5; color: #6f42c1; }
+.entry-code.code-50011 { background: #d4edda; color: #2d6a4f; }
+.entry-code.code-50016 { background: #cce5ff; color: #004085; }
+.entry-code.code-50042 { background: #fff3cd; color: #856404; }
+.entry-code.code-50038 { background: #fce4ec; color: #c06070; }
+
+.entry-status {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.entry-status.s-projected { background: var(--yellow); color: var(--yellow-dark); }
+.entry-status.s-done_not_logged { background: var(--pink); color: var(--pink-dark); }
+.entry-status.s-logged { background: var(--green-light); color: var(--green); }
+.entry-status.s-cancelled { background: #e9ecef; color: #6c757d; }
+.entry-status.s-blank { background: #f0f0f0; color: #aaa; }
+
+.entry-tafuka {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+}
+
+.entry-tafuka.t-1 { background: var(--accent-soft); color: var(--accent); }
+.entry-tafuka.t-0 { background: #f0f0f0; color: #ccc; }
+
+.entry-notes-row {
+  background: var(--surface);
+  padding: 0 16px 8px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.entry-notes-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 13px;
+  direction: rtl;
+  resize: none;
+}
+
+/* ── Add Row Button ── */
+.add-row-btn {
+  background: none;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  width: 100%;
+  padding: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.add-row-btn:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ── FAB ── */
+.fab {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.fab:hover { transform: scale(1.05); }
+
+/* ── Modal ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.show { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.modal h2 {
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+.modal label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 4px;
+  margin-top: 12px;
+}
+
+.modal input, .modal select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  direction: rtl;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+  justify-content: flex-start;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #245a42; }
+.btn-secondary { background: var(--gray-light); color: var(--text); }
+.btn-danger { background: var(--red); color: #fff; }
+
+/* ── Kids Tab ── */
+.kids-list {
+  padding: 8px 16px;
+}
+
+.kid-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kid-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.kid-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.kid-sessions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kid-session-count {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.kid-session-label {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.parent-talk-badge {
+  background: var(--pink);
+  color: var(--pink-dark);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ── Rollover Section ── */
+.rollover-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin: 12px 16px;
+  padding: 16px;
+}
+
+.rollover-section h3 {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.rollover-entries {
+  margin-top: 8px;
+}
+
+/* ── Empty State ── */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+
+.empty-state h2 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.empty-state .btn {
+  margin-top: 16px;
+}
+
+/* ── Loading ── */
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--muted);
+}
+
+/* ── Code Picker Dropdown ── */
+.code-picker {
+  position: absolute;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  z-index: 150;
+  overflow: hidden;
+}
+
+.code-picker-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.code-picker-item:hover { background: var(--accent-soft); }
+
+/* ── Responsive ── */
+@media (max-width: 500px) {
+  .entry-row {
+    grid-template-columns: 42px 1fr 55px 70px 28px;
+    gap: 4px;
+    padding: 6px 10px;
+  }
+  .header { padding: 10px 12px; }
+  .summary { padding: 10px 12px; grid-template-columns: repeat(2, 1fr); }
+  .stat-value { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1>מעקב תפוקות</h1>
+  <div class="month-selector">
+    <button onclick="changeMonth(1)" title="חודש הבא">&#8249;</button>
+    <span class="month-label" id="monthLabel"></span>
+    <button onclick="changeMonth(-1)" title="חודש קודם">&#8250;</button>
+  </div>
+  <div class="header-actions">
+    <button class="header-btn" onclick="showSettings()">&#9881;</button>
+  </div>
+</div>
+
+<!-- Summary Ribbon -->
+<div class="summary" id="summary">
+  <div class="stat">
+    <div class="stat-label">תפוקות</div>
+    <div class="stat-value" id="statTafukot">-</div>
+    <div class="stat-sub" id="statTafukotSub"></div>
+    <div class="progress-bar"><div class="progress-fill" id="tafukotProgress"></div></div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">נרשם בקליקס</div>
+    <div class="stat-value" id="statLogged">-</div>
+    <div class="stat-sub" id="statLoggedSub"></div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">לא נרשם!</div>
+    <div class="stat-value" id="statNotLogged">-</div>
+    <div class="stat-sub" id="statNotLoggedSub"></div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">שלטים</div>
+    <div class="stat-value" id="statShelet">-</div>
+    <div class="stat-sub" id="statSheletSub"></div>
+    <div class="progress-bar"><div class="progress-fill" id="sheletProgress"></div></div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" data-tab="monthly" onclick="switchTab('monthly')">חודשי</button>
+  <button class="tab" data-tab="kids" onclick="switchTab('kids')">ילדים</button>
+</div>
+
+<!-- Content -->
+<div class="content" id="content">
+  <div class="loading">טוען...</div>
+</div>
+
+<!-- FAB: Quick Add -->
+<button class="fab" onclick="quickAdd()" title="הוסף שורה">+</button>
+
+<!-- Add Entry Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h2 id="modalTitle">הוסף שורה</h2>
+    <label>תאריך</label>
+    <input type="date" id="modalDate">
+    <label>שעה</label>
+    <input type="time" id="modalTime" value="08:00">
+    <label>שם</label>
+    <input type="text" id="modalName" placeholder="שם הילד/ה או אבחון">
+    <label>קוד טיפול</label>
+    <select id="modalCode">
+      <option value="50011">50011 — טיפול פרטני</option>
+      <option value="50008">50008 — אבחון</option>
+      <option value="50016">50016 — הדרכה</option>
+      <option value="50042">50042 — קוד 50042</option>
+      <option value="50038">50038 — סיכום טיפול</option>
+    </select>
+    <label>כמה שורות (לאבחון = 3)</label>
+    <input type="number" id="modalSlots" value="1" min="1" max="5">
+    <label>סטטוס</label>
+    <select id="modalStatus">
+      <option value="projected">צפוי</option>
+      <option value="done_not_logged">בוצע — לא נרשם</option>
+      <option value="logged">נרשם בקליקס</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveNewEntry()">שמור</button>
+      <button class="btn btn-secondary" onclick="closeModal('addModal')">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h2>הגדרות חודש</h2>
+    <label>יעד תפוקות</label>
+    <input type="number" id="settingTarget" value="54">
+    <label>יעד שלטים</label>
+    <input type="number" id="settingShelet" value="12">
+    <label>גלגול מחודש קודם</label>
+    <input type="number" id="settingRollover" value="0">
+    <label>סיכומים זמינים (גיבוי)</label>
+    <input type="number" id="settingSikumim" value="0">
+    <label>הדרכות נוספות (גיבוי)</label>
+    <input type="number" id="settingHadrachot" value="0">
+    <hr style="margin: 16px 0; border: none; border-top: 1px solid var(--border);">
+    <h3 style="font-size: 14px; margin-bottom: 8px;">פעולות</h3>
+    <button class="btn btn-primary" onclick="generateMonth()" style="margin-left: 8px;">צור חודש מתבנית</button>
+    <button class="btn btn-danger" onclick="closeMonth()">סגור חודש (חשב גלגול)</button>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveSettings()">שמור הגדרות</button>
+      <button class="btn btn-secondary" onclick="closeModal('settingsModal')">סגור</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SB_URL = 'https://hpiyvnfhoqnnnotrmwaz.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwaXl2bmZob3Fubm5vdHJtd2F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NzIwNDEsImV4cCI6MjA4ODA0ODA0MX0.AsGhYitkSnyVMwpJII05UseS_gICaXiCy7d8iHsr6Qw';
+const sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+const HEBREW_MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+const HEBREW_DAYS = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','שבת'];
+const STATUS_LABELS = {
+  projected: 'צפוי',
+  done_not_logged: 'לא נרשם!',
+  logged: 'נרשם ✓',
+  cancelled: 'בוטל',
+  blank: 'ריק'
+};
+const STATUS_CYCLE = ['projected', 'done_not_logged', 'logged', 'cancelled', 'blank'];
+
+// State
+let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth() + 1;
+let monthData = null;
+let entries = [];
+let kids = [];
+let codes = [];
+let activeTab = 'monthly';
+let debounceTimers = {};
+
+// ── Init ──
+async function init() {
+  const { data } = await sb.from('ot_treatment_codes').select('*').order('code');
+  codes = data || [];
+  await loadMonth(currentYear, currentMonth);
+  await loadKids();
+}
+
+async function loadKids() {
+  const { data } = await sb.from('ot_kids').select('*').order('name');
+  kids = data || [];
+  if (activeTab === 'kids') renderKids();
+}
+
+async function loadMonth(year, month) {
+  // Get or create month record
+  let { data } = await sb.from('ot_months').select('*').eq('year', year).eq('month_num', month).single();
+  if (!data) {
+    const { data: created } = await sb.from('ot_months').insert({ year, month_num: month }).select().single();
+    data = created;
+  }
+  monthData = data;
+
+  // Load entries
+  const { data: ents } = await sb.from('ot_entries').select('*, ot_kids(name)').eq('month_id', monthData.id).order('date').order('time_slot').order('sort_order');
+  entries = ents || [];
+
+  updateMonthLabel();
+  updateSummary();
+  renderMonthly();
+  updateSettingsForm();
+}
+
+function updateMonthLabel() {
+  document.getElementById('monthLabel').textContent = `${HEBREW_MONTHS[currentMonth - 1]} ${currentYear}`;
+}
+
+function changeMonth(dir) {
+  currentMonth += dir;
+  if (currentMonth > 12) { currentMonth = 1; currentYear++; }
+  if (currentMonth < 1) { currentMonth = 12; currentYear--; }
+  loadMonth(currentYear, currentMonth);
+}
+
+// ── Summary ──
+function updateSummary() {
+  if (!monthData) return;
+
+  const total = entries.reduce((s, e) => s + e.tafukti, 0);
+  const logged = entries.filter(e => e.status === 'logged').reduce((s, e) => s + e.tafukti, 0);
+  const notLogged = entries.filter(e => e.status === 'done_not_logged').reduce((s, e) => s + e.tafukti, 0);
+  const done = logged + notLogged;
+  const projected = entries.filter(e => e.status === 'projected').reduce((s, e) => s + e.tafukti, 0);
+  const target = monthData.tafukot_target;
+  const rolloverIn = monthData.rollover_in || 0;
+  const effectiveTotal = total + rolloverIn;
+
+  document.getElementById('statTafukot').textContent = `${effectiveTotal} / ${target}`;
+  document.getElementById('statTafukot').className = 'stat-value' + (effectiveTotal < target ? ' warning' : '');
+  document.getElementById('statTafukotSub').textContent =
+    `${done} בוצע + ${projected} צפוי` + (rolloverIn > 0 ? ` + ${rolloverIn} גלגול` : '');
+  document.getElementById('tafukotProgress').style.width = `${Math.min(100, (effectiveTotal / target) * 100)}%`;
+
+  document.getElementById('statLogged').textContent = logged;
+  document.getElementById('statLoggedSub').textContent = `מתוך ${done} שבוצעו`;
+
+  const el = document.getElementById('statNotLogged');
+  el.textContent = notLogged;
+  el.className = 'stat-value' + (notLogged > 0 ? ' danger' : '');
+  document.getElementById('statNotLoggedSub').textContent = notLogged > 0 ? 'לרשום בקליקס!' : '';
+
+  // Shelet — count entries with notes containing שלט, or we can track separately
+  const sheletTarget = monthData.shelet_target || 12;
+  document.getElementById('statShelet').textContent = `- / ${sheletTarget}`;
+  document.getElementById('statSheletSub').textContent = 'מעקב ידני';
+  document.getElementById('sheletProgress').style.width = '0%';
+}
+
+// ── Render Monthly ──
+function renderMonthly() {
+  const content = document.getElementById('content');
+
+  if (entries.length === 0) {
+    content.innerHTML = `
+      <div class="empty-state">
+        <h2>אין נתונים לחודש זה</h2>
+        <p>לחצי על "צור חודש מתבנית" בהגדרות כדי ליצור את לוח הזמנים</p>
+        <button class="btn btn-primary" onclick="generateMonth()">צור חודש מתבנית</button>
+      </div>`;
+    return;
+  }
+
+  // Group by date
+  const grouped = {};
+  entries.forEach(e => {
+    if (!grouped[e.date]) grouped[e.date] = [];
+    grouped[e.date].push(e);
+  });
+
+  let html = '';
+
+  // Rollover section
+  if (monthData.rollover_in > 0) {
+    html += `<div class="rollover-section">
+      <h3>גלגול מחודש קודם: ${monthData.rollover_in} תפוקות</h3>
+    </div>`;
+  }
+
+  Object.keys(grouped).sort().forEach(date => {
+    const dayEntries = grouped[date];
+    const d = new Date(date + 'T00:00:00');
+    const dayOfWeek = d.getDay();
+    const dayTafukot = dayEntries.reduce((s, e) => s + e.tafukti, 0);
+    const dayDone = dayEntries.filter(e => e.status === 'logged' || e.status === 'done_not_logged').length;
+    const dayNotLogged = dayEntries.filter(e => e.status === 'done_not_logged').length;
+
+    const dateStr = `${d.getDate()}/${d.getMonth() + 1}`;
+
+    html += `<div class="day-group">
+      <div class="day-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? '' : 'none'">
+        <span class="day-title">יום ${HEBREW_DAYS[dayOfWeek]} — ${dateStr}</span>
+        <span class="day-summary">
+          <span>תפוקות: <span class="count">${dayTafukot}</span></span>
+          ${dayNotLogged > 0 ? `<span style="color:var(--red)">לא נרשם: ${dayNotLogged}</span>` : ''}
+        </span>
+      </div>
+      <div class="day-entries">`;
+
+    dayEntries.forEach(entry => {
+      const time = entry.time_slot ? entry.time_slot.substring(0, 5) : '';
+      const name = entry.ot_kids?.name || entry.special_label || '';
+      const codeClass = `code-${entry.treatment_code}`;
+
+      html += `
+        <div class="entry-row status-${entry.status} ${codeClass}" data-id="${entry.id}">
+          <span class="entry-time">${time}</span>
+          <input class="entry-name" value="${escHtml(name)}" placeholder="—"
+                 onchange="updateEntryName('${entry.id}', this.value)"
+                 onfocus="this.select()">
+          <span class="entry-code ${codeClass}" onclick="cycleCode('${entry.id}')">${entry.treatment_code}</span>
+          <span class="entry-status s-${entry.status}" onclick="cycleStatus('${entry.id}')">${STATUS_LABELS[entry.status]}</span>
+          <span class="entry-tafuka t-${entry.tafukti}" onclick="toggleTafuka('${entry.id}')">${entry.tafukti}</span>
+        </div>`;
+    });
+
+    html += `
+        <button class="add-row-btn" onclick="addEntryForDate('${date}')">+ הוסף שורה</button>
+      </div>
+    </div>`;
+  });
+
+  // Add new day button
+  html += `<div style="padding: 16px;">
+    <button class="btn btn-secondary" onclick="addNewDay()" style="width: 100%;">+ הוסף יום חדש</button>
+  </div>`;
+
+  content.innerHTML = html;
+}
+
+// ── Render Kids ──
+function renderKids() {
+  const content = document.getElementById('content');
+
+  if (kids.length === 0) {
+    content.innerHTML = `<div class="empty-state"><h2>אין ילדים</h2><p>ילדים נוספים אוטומטית כשאת ממלאת שמות</p></div>`;
+    return;
+  }
+
+  let html = '<div class="kids-list">';
+  kids.forEach(kid => {
+    // Count sessions for this kid across all entries
+    const kidEntries = entries.filter(e => e.kid_id === kid.id && (e.status === 'done_not_logged' || e.status === 'logged'));
+    const sessionCount = kidEntries.length;
+    const sessionsUntilTalk = 8 - (sessionCount % 8);
+    const needsTalk = sessionCount > 0 && sessionCount % 8 === 0;
+
+    html += `
+      <div class="kid-card">
+        <div>
+          <div class="kid-name">${escHtml(kid.name)}</div>
+          <div class="kid-meta">${kid.is_active ? 'פעיל/ה' : 'הסתיים'} · ${kid.default_code || ''}</div>
+        </div>
+        <div class="kid-sessions">
+          ${needsTalk ? '<span class="parent-talk-badge">שיחה עם הורים!</span>' : ''}
+          <div style="text-align: center;">
+            <div class="kid-session-count">${sessionCount}</div>
+            <div class="kid-session-label">מפגשים</div>
+            <div class="kid-session-label">${sessionsUntilTalk} עד שיחה</div>
+          </div>
+        </div>
+      </div>`;
+  });
+  html += '</div>';
+  content.innerHTML = html;
+}
+
+// ── Tab Switching ──
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  if (tab === 'monthly') renderMonthly();
+  else if (tab === 'kids') renderKids();
+}
+
+// ── Entry Actions ──
+async function cycleStatus(id) {
+  const entry = entries.find(e => e.id === id);
+  if (!entry) return;
+
+  const currentIdx = STATUS_CYCLE.indexOf(entry.status);
+  const newStatus = STATUS_CYCLE[(currentIdx + 1) % STATUS_CYCLE.length];
+
+  // Auto-set tafukti based on status
+  let newTafukti = 1;
+  if (newStatus === 'cancelled' || newStatus === 'blank') newTafukti = 0;
+
+  await sb.from('ot_entries').update({ status: newStatus, tafukti: newTafukti }).eq('id', id);
+  entry.status = newStatus;
+  entry.tafukti = newTafukti;
+
+  updateSummary();
+  renderMonthly();
+}
+
+async function cycleCode(id) {
+  const entry = entries.find(e => e.id === id);
+  if (!entry) return;
+
+  const codeValues = codes.map(c => c.code);
+  const currentIdx = codeValues.indexOf(entry.treatment_code);
+  const newCode = codeValues[(currentIdx + 1) % codeValues.length];
+
+  await sb.from('ot_entries').update({ treatment_code: newCode }).eq('id', id);
+  entry.treatment_code = newCode;
+  renderMonthly();
+}
+
+async function toggleTafuka(id) {
+  const entry = entries.find(e => e.id === id);
+  if (!entry) return;
+
+  const newVal = entry.tafukti === 1 ? 0 : 1;
+  await sb.from('ot_entries').update({ tafukti: newVal }).eq('id', id);
+  entry.tafukti = newVal;
+
+  updateSummary();
+  renderMonthly();
+}
+
+async function updateEntryName(id, value) {
+  const entry = entries.find(e => e.id === id);
+  if (!entry) return;
+
+  const trimmed = value.trim();
+
+  // Check if it matches an existing kid
+  const matchedKid = kids.find(k => k.name === trimmed);
+
+  if (matchedKid) {
+    await sb.from('ot_entries').update({ kid_id: matchedKid.id, special_label: null }).eq('id', id);
+    entry.kid_id = matchedKid.id;
+    entry.special_label = null;
+    entry.ot_kids = { name: matchedKid.name };
+  } else if (trimmed === '') {
+    await sb.from('ot_entries').update({ kid_id: null, special_label: null }).eq('id', id);
+    entry.kid_id = null;
+    entry.special_label = null;
+    entry.ot_kids = null;
+  } else if (trimmed.toUpperCase() === 'NEW' || trimmed === 'חדש') {
+    await sb.from('ot_entries').update({ kid_id: null, special_label: 'NEW' }).eq('id', id);
+    entry.kid_id = null;
+    entry.special_label = 'NEW';
+    entry.ot_kids = null;
+  } else {
+    // New kid name — create kid record and link
+    const { data: newKid } = await sb.from('ot_kids').insert({ name: trimmed }).select().single();
+    if (newKid) {
+      kids.push(newKid);
+      await sb.from('ot_entries').update({ kid_id: newKid.id, special_label: null }).eq('id', id);
+      entry.kid_id = newKid.id;
+      entry.special_label = null;
+      entry.ot_kids = { name: newKid.name };
+    } else {
+      // Fallback: save as special_label
+      await sb.from('ot_entries').update({ kid_id: null, special_label: trimmed }).eq('id', id);
+      entry.special_label = trimmed;
+      entry.ot_kids = null;
+    }
+  }
+}
+
+// ── Generate Month ──
+async function generateMonth() {
+  if (monthData.is_generated) {
+    if (!confirm('חודש זה כבר נוצר. ליצור מחדש? (זה ימחק את כל השורות הקיימות!)')) return;
+    await sb.from('ot_entries').delete().eq('month_id', monthData.id);
+  }
+
+  // Get schedule template
+  const { data: templates } = await sb.from('ot_schedule_templates').select('*').eq('is_active', true).order('day_of_week').order('sort_order');
+
+  if (!templates || templates.length === 0) {
+    alert('אין תבנית לוח זמנים. הוסיפי תבנית בהגדרות.');
+    return;
+  }
+
+  // Get all dates in the month
+  const newEntries = [];
+  const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(currentYear, currentMonth - 1, day);
+    const dayOfWeek = date.getDay();
+    const dateStr = date.toISOString().split('T')[0];
+
+    const dayTemplates = templates.filter(t => t.day_of_week === dayOfWeek);
+
+    dayTemplates.forEach(t => {
+      newEntries.push({
+        month_id: monthData.id,
+        date: dateStr,
+        day_of_week: dayOfWeek,
+        time_slot: t.time_slot,
+        sort_order: t.sort_order,
+        treatment_code: t.treatment_code,
+        status: 'projected',
+        tafukti: 1,
+        notes: t.notes,
+        kid_id: null,
+        special_label: t.treatment_code === 50008 ? 'אבחון' : null
+      });
+    });
+  }
+
+  // Batch insert
+  if (newEntries.length > 0) {
+    const { error } = await sb.from('ot_entries').insert(newEntries);
+    if (error) {
+      alert('שגיאה: ' + error.message);
+      return;
+    }
+  }
+
+  // Mark as generated
+  await sb.from('ot_months').update({ is_generated: true }).eq('id', monthData.id);
+  monthData.is_generated = true;
+
+  closeModal('settingsModal');
+  await loadMonth(currentYear, currentMonth);
+}
+
+// ── Close Month (Rollover) ──
+async function closeMonth() {
+  if (!confirm('לסגור את החודש ולחשב גלגול לחודש הבא?')) return;
+
+  const done = entries.filter(e => e.status === 'logged' || e.status === 'done_not_logged')
+    .reduce((s, e) => s + e.tafukti, 0);
+  const effectiveTotal = done + (monthData.rollover_in || 0);
+  const surplus = Math.max(0, effectiveTotal - monthData.tafukot_target);
+
+  // Update current month
+  await sb.from('ot_months').update({ rollover_out: surplus }).eq('id', monthData.id);
+
+  // Get or create next month
+  let nextMonth = currentMonth + 1;
+  let nextYear = currentYear;
+  if (nextMonth > 12) { nextMonth = 1; nextYear++; }
+
+  let { data: next } = await sb.from('ot_months').select('*').eq('year', nextYear).eq('month_num', nextMonth).single();
+  if (!next) {
+    const { data: created } = await sb.from('ot_months').insert({ year: nextYear, month_num: nextMonth, rollover_in: surplus }).select().single();
+    next = created;
+  } else {
+    await sb.from('ot_months').update({ rollover_in: surplus }).eq('id', next.id);
+  }
+
+  alert(`חודש נסגר! עודף: ${surplus} תפוקות → ${HEBREW_MONTHS[nextMonth - 1]}`);
+  closeModal('settingsModal');
+}
+
+// ── Add Entry ──
+function quickAdd() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('modalDate').value = today;
+  document.getElementById('modalTime').value = '08:00';
+  document.getElementById('modalName').value = '';
+  document.getElementById('modalCode').value = '50011';
+  document.getElementById('modalSlots').value = '1';
+  document.getElementById('modalStatus').value = 'projected';
+  document.getElementById('modalTitle').textContent = 'הוסף שורה';
+  document.getElementById('addModal').classList.add('show');
+}
+
+function addEntryForDate(date) {
+  document.getElementById('modalDate').value = date;
+  document.getElementById('modalTime').value = '08:00';
+  document.getElementById('modalName').value = '';
+  document.getElementById('modalCode').value = '50011';
+  document.getElementById('modalSlots').value = '1';
+  document.getElementById('modalStatus').value = 'projected';
+  document.getElementById('modalTitle').textContent = 'הוסף שורה';
+  document.getElementById('addModal').classList.add('show');
+}
+
+function addNewDay() {
+  quickAdd();
+}
+
+async function saveNewEntry() {
+  const date = document.getElementById('modalDate').value;
+  const time = document.getElementById('modalTime').value;
+  const name = document.getElementById('modalName').value.trim();
+  const code = parseInt(document.getElementById('modalCode').value);
+  const slots = parseInt(document.getElementById('modalSlots').value);
+  const status = document.getElementById('modalStatus').value;
+
+  if (!date) { alert('בחרי תאריך'); return; }
+
+  const d = new Date(date + 'T00:00:00');
+  const dayOfWeek = d.getDay();
+
+  // Find the max sort_order for this date/time
+  const existing = entries.filter(e => e.date === date && e.time_slot === time + ':00');
+  const maxSort = existing.length > 0 ? Math.max(...existing.map(e => e.sort_order)) : 0;
+
+  const tafukti = (status === 'cancelled' || status === 'blank') ? 0 : 1;
+
+  // Match kid or create
+  let kid_id = null;
+  let special_label = null;
+  if (name) {
+    const matchedKid = kids.find(k => k.name === name);
+    if (matchedKid) {
+      kid_id = matchedKid.id;
+    } else if (name.toUpperCase() === 'NEW' || name === 'חדש') {
+      special_label = 'NEW';
+    } else if (name === 'אבחון') {
+      special_label = 'אבחון';
+    } else {
+      const { data: newKid } = await sb.from('ot_kids').insert({ name }).select().single();
+      if (newKid) { kids.push(newKid); kid_id = newKid.id; }
+    }
+  }
+
+  const newEntries = [];
+  for (let i = 0; i < slots; i++) {
+    newEntries.push({
+      month_id: monthData.id,
+      date,
+      day_of_week: dayOfWeek,
+      time_slot: time,
+      sort_order: maxSort + i + 1,
+      treatment_code: code,
+      status,
+      tafukti,
+      kid_id,
+      special_label: special_label || (code === 50008 && !kid_id ? 'אבחון' : null)
+    });
+  }
+
+  const { error } = await sb.from('ot_entries').insert(newEntries);
+  if (error) { alert('שגיאה: ' + error.message); return; }
+
+  closeModal('addModal');
+  await loadMonth(currentYear, currentMonth);
+}
+
+// ── Settings ──
+function showSettings() {
+  updateSettingsForm();
+  document.getElementById('settingsModal').classList.add('show');
+}
+
+function updateSettingsForm() {
+  if (!monthData) return;
+  document.getElementById('settingTarget').value = monthData.tafukot_target;
+  document.getElementById('settingShelet').value = monthData.shelet_target;
+  document.getElementById('settingRollover').value = monthData.rollover_in || 0;
+  document.getElementById('settingSikumim').value = monthData.sikumim_available || 0;
+  document.getElementById('settingHadrachot').value = monthData.extra_hadrachot || 0;
+}
+
+async function saveSettings() {
+  const updates = {
+    tafukot_target: parseInt(document.getElementById('settingTarget').value),
+    shelet_target: parseInt(document.getElementById('settingShelet').value),
+    rollover_in: parseInt(document.getElementById('settingRollover').value),
+    sikumim_available: parseInt(document.getElementById('settingSikumim').value),
+    extra_hadrachot: parseInt(document.getElementById('settingHadrachot').value)
+  };
+
+  await sb.from('ot_months').update(updates).eq('id', monthData.id);
+  Object.assign(monthData, updates);
+  updateSummary();
+  closeModal('settingsModal');
+}
+
+// ── Helpers ──
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+function escHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => {
+    if (e.target === el) el.classList.remove('show');
+  });
+});
+
+// Init
+init();
+</script>
+</body>
+</html>
