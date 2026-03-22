@@ -582,7 +582,7 @@ body {
     <select id="monthDropdown" class="month-dropdown" onchange="selectMonth(this.value)"></select>
   </div>
   <div class="header-actions">
-    <button class="header-btn" onclick="showSettings()">&#9881;</button>
+    <button class="header-btn" onclick="generateMonth()" title="צור חודש מתבנית">+🗓</button>
   </div>
 </div>
 
@@ -592,7 +592,9 @@ body {
   <div style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px; border-left: 1px solid var(--border);">
     <div class="stat">
       <div class="stat-label">יעד</div>
-      <div class="stat-value" id="statTafukotGoal">-</div>
+      <div style="display: flex; justify-content: center;">
+        <input type="number" id="statTafukotGoal" min="0" style="width: 40px; text-align: center; border: 1px solid var(--border); border-radius: 4px; font-size: 18px; font-weight: 700; font-family: inherit; padding: 2px;" onchange="saveTafukotGoal(this.value)">
+      </div>
     </div>
     <div style="font-size: 12px; color: var(--muted); padding-top: 16px;">←</div>
     <div class="stat">
@@ -629,7 +631,9 @@ body {
   <div style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px;">
     <div class="stat">
       <div class="stat-label">יעד</div>
-      <div class="stat-value" id="statSheletGoal">-</div>
+      <div style="display: flex; justify-content: center;">
+        <input type="number" id="statSheletGoal" min="0" style="width: 40px; text-align: center; border: 1px solid var(--border); border-radius: 4px; font-size: 18px; font-weight: 700; font-family: inherit; padding: 2px;" onchange="saveSheletGoal(this.value)">
+      </div>
     </div>
     <div style="font-size: 12px; color: var(--muted); padding-top: 16px;">←</div>
     <div class="stat">
@@ -689,32 +693,6 @@ body {
   </div>
 </div>
 
-<!-- Settings Modal -->
-<div class="modal-overlay" id="settingsModal">
-  <div class="modal">
-    <h2>הגדרות חודש</h2>
-    <label>יעד תפוקות (פרמיות)</label>
-    <input type="number" id="settingTarget" value="54">
-    <label>צפי תפוקות (כמה את מעריכה שתעשי)</label>
-    <input type="number" id="settingProjected" value="0">
-    <label>יעד שלטים</label>
-    <input type="number" id="settingShelet" value="12">
-    <label>גלגול מחודש קודם</label>
-    <input type="number" id="settingRollover" value="0">
-    <label>סיכומים זמינים (גיבוי)</label>
-    <input type="number" id="settingSikumim" value="0">
-    <label>הדרכות נוספות (גיבוי)</label>
-    <input type="number" id="settingHadrachot" value="0">
-    <hr style="margin: 16px 0; border: none; border-top: 1px solid var(--border);">
-    <h3 style="font-size: 14px; margin-bottom: 8px;">פעולות</h3>
-    <button class="btn btn-primary" onclick="generateMonth()" style="margin-left: 8px;">צור חודש מתבנית</button>
-    <button class="btn btn-danger" onclick="closeMonth()">סגור חודש (חשב גלגול)</button>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="saveSettings()">שמור הגדרות</button>
-      <button class="btn btn-secondary" onclick="closeModal('settingsModal')">סגור</button>
-    </div>
-  </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
@@ -824,7 +802,7 @@ function updateSummary() {
   const total = entries.reduce((s, e) => s + e.tafukti, 0);
   const target = monthData.tafukot_target;
   const tDiff = total - target;
-  document.getElementById('statTafukotGoal').textContent = target;
+  document.getElementById('statTafukotGoal').value = target;
   document.getElementById('statTafukotTotal').textContent = total;
   const tDiffEl = document.getElementById('statTafukotDiff');
   if (tDiff > 0) {
@@ -839,7 +817,7 @@ function updateSummary() {
   const sheletTarget = monthData.shelet_target || 12;
   const sheletCount = sheletEntries.length;
   const sDiff = sheletCount - sheletTarget;
-  document.getElementById('statSheletGoal').textContent = sheletTarget;
+  document.getElementById('statSheletGoal').value = sheletTarget;
   document.getElementById('statSheletTotal').textContent = sheletCount;
   const sDiffEl = document.getElementById('statSheletDiff');
   if (sDiff > 0) {
@@ -1343,7 +1321,6 @@ async function generateMonth() {
   await sb.from('ot_months').update({ is_generated: true }).eq('id', monthData.id);
   monthData.is_generated = true;
 
-  closeModal('settingsModal');
   await loadMonth(currentYear, currentMonth);
 }
 
@@ -1373,7 +1350,6 @@ async function closeMonth() {
   }
 
   alert(`חודש נסגר! עודף: ${surplus} תפוקות → ${HEBREW_MONTHS[nextMonth - 1]}`);
-  closeModal('settingsModal');
 }
 
 // ── Add Entry ──
@@ -1463,36 +1439,19 @@ async function saveNewEntry() {
   await loadMonth(currentYear, currentMonth);
 }
 
-// ── Settings ──
-function showSettings() {
-  updateSettingsForm();
-  document.getElementById('settingsModal').classList.add('show');
-}
-
-function updateSettingsForm() {
-  if (!monthData) return;
-  document.getElementById('settingTarget').value = monthData.tafukot_target;
-  document.getElementById('settingProjected').value = monthData.projected_total || 0;
-  document.getElementById('settingShelet').value = monthData.shelet_target;
-  document.getElementById('settingRollover').value = monthData.rollover_in || 0;
-  document.getElementById('settingSikumim').value = monthData.sikumim_available || 0;
-  document.getElementById('settingHadrachot').value = monthData.extra_hadrachot || 0;
-}
-
-async function saveSettings() {
-  const updates = {
-    tafukot_target: parseInt(document.getElementById('settingTarget').value),
-    projected_total: parseInt(document.getElementById('settingProjected').value),
-    shelet_target: parseInt(document.getElementById('settingShelet').value),
-    rollover_in: parseInt(document.getElementById('settingRollover').value),
-    sikumim_available: parseInt(document.getElementById('settingSikumim').value),
-    extra_hadrachot: parseInt(document.getElementById('settingHadrachot').value)
-  };
-
-  await sb.from('ot_months').update(updates).eq('id', monthData.id);
-  Object.assign(monthData, updates);
+// ── Inline Goal Saves ──
+async function saveTafukotGoal(val) {
+  const v = parseInt(val) || 0;
+  await sb.from('ot_months').update({ tafukot_target: v }).eq('id', monthData.id);
+  monthData.tafukot_target = v;
   updateSummary();
-  closeModal('settingsModal');
+}
+
+async function saveSheletGoal(val) {
+  const v = parseInt(val) || 0;
+  await sb.from('ot_months').update({ shelet_target: v }).eq('id', monthData.id);
+  monthData.shelet_target = v;
+  updateSummary();
 }
 
 async function saveSikumimGoal(val) {
