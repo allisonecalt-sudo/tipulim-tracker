@@ -671,8 +671,10 @@ body {
 <div class="modal-overlay" id="settingsModal">
   <div class="modal">
     <h2>הגדרות חודש</h2>
-    <label>יעד תפוקות</label>
+    <label>יעד תפוקות (פרמיות)</label>
     <input type="number" id="settingTarget" value="54">
+    <label>צפי תפוקות (כמה את מעריכה שתעשי)</label>
+    <input type="number" id="settingProjected" value="0">
     <label>יעד שלטים</label>
     <input type="number" id="settingShelet" value="12">
     <label>גלגול מחודש קודם</label>
@@ -767,19 +769,18 @@ function changeMonth(dir) {
 function updateSummary() {
   if (!monthData) return;
 
-  const total = entries.reduce((s, e) => s + e.tafukti, 0);
   const logged = entries.filter(e => e.status === 'logged').reduce((s, e) => s + e.tafukti, 0);
   const notLogged = entries.filter(e => e.status === 'done_not_logged').reduce((s, e) => s + e.tafukti, 0);
   const done = logged + notLogged;
-  const projected = entries.filter(e => e.status === 'projected').reduce((s, e) => s + e.tafukti, 0);
   const target = monthData.tafukot_target;
   const rolloverIn = monthData.rollover_in || 0;
-  const effectiveTotal = total + rolloverIn;
+  const projected = monthData.projected_total || 0;
+  const effectiveTotal = projected + rolloverIn;
 
   document.getElementById('statTafukot').textContent = `${effectiveTotal} / ${target}`;
   document.getElementById('statTafukot').className = 'stat-value' + (effectiveTotal < target ? ' warning' : '');
   document.getElementById('statTafukotSub').textContent =
-    `${done} בוצע + ${projected} צפוי` + (rolloverIn > 0 ? ` + ${rolloverIn} גלגול` : '');
+    `${done} בוצע · צפי ${projected}` + (rolloverIn > 0 ? ` + ${rolloverIn} גלגול` : '');
   document.getElementById('tafukotProgress').style.width = `${Math.min(100, (effectiveTotal / target) * 100)}%`;
 
   document.getElementById('statLogged').textContent = logged;
@@ -1197,6 +1198,7 @@ function showSettings() {
 function updateSettingsForm() {
   if (!monthData) return;
   document.getElementById('settingTarget').value = monthData.tafukot_target;
+  document.getElementById('settingProjected').value = monthData.projected_total || 0;
   document.getElementById('settingShelet').value = monthData.shelet_target;
   document.getElementById('settingRollover').value = monthData.rollover_in || 0;
   document.getElementById('settingSikumim').value = monthData.sikumim_available || 0;
@@ -1206,6 +1208,7 @@ function updateSettingsForm() {
 async function saveSettings() {
   const updates = {
     tafukot_target: parseInt(document.getElementById('settingTarget').value),
+    projected_total: parseInt(document.getElementById('settingProjected').value),
     shelet_target: parseInt(document.getElementById('settingShelet').value),
     rollover_in: parseInt(document.getElementById('settingRollover').value),
     sikumim_available: parseInt(document.getElementById('settingSikumim').value),
