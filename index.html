@@ -601,8 +601,32 @@ body {
     </div>
     <div class="stat" id="statTafukotDiff" style="padding-top: 16px;"></div>
   </div>
+  <!-- 50038 -->
+  <div style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-left: 1px solid var(--border);">
+    <div class="stat">
+      <div class="stat-label">50038</div>
+      <div style="display: flex; align-items: center; gap: 4px; justify-content: center;">
+        <input type="number" id="sikumimGoal" min="0" style="width: 32px; text-align: center; border: 1px solid var(--border); border-radius: 4px; font-size: 16px; font-weight: 700; font-family: inherit; padding: 2px;" onchange="saveSikumimGoal(this.value)">
+        <span style="font-size: 11px; color: var(--muted);">←</span>
+        <span style="font-size: 16px; font-weight: 700;" id="statSikumimDone">0</span>
+      </div>
+      <div class="stat-sub" style="font-size: 11px; color: var(--accent);">נשאר <span id="statSikumimLeft">0</span></div>
+    </div>
+  </div>
+  <!-- 50016 -->
+  <div style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-left: 1px solid var(--border);">
+    <div class="stat">
+      <div class="stat-label">50016</div>
+      <div style="display: flex; align-items: center; gap: 4px; justify-content: center;">
+        <input type="number" id="hadrachotGoal" min="0" style="width: 32px; text-align: center; border: 1px solid var(--border); border-radius: 4px; font-size: 16px; font-weight: 700; font-family: inherit; padding: 2px;" onchange="saveHadrachotGoal(this.value)">
+        <span style="font-size: 11px; color: var(--muted);">←</span>
+        <span style="font-size: 16px; font-weight: 700;" id="statHadrachotDone">0</span>
+      </div>
+      <div class="stat-sub" style="font-size: 11px; color: var(--accent);">נשאר <span id="statHadrachotLeft">0</span></div>
+    </div>
+  </div>
   <!-- שלטים -->
-  <div style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px; border-left: 1px solid var(--border);">
+  <div style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px;">
     <div class="stat">
       <div class="stat-label">יעד</div>
       <div class="stat-value" id="statSheletGoal">-</div>
@@ -613,30 +637,6 @@ body {
       <div class="stat-value" id="statSheletTotal">-</div>
     </div>
     <div class="stat" id="statSheletDiff" style="padding-top: 16px;"></div>
-  </div>
-  <!-- סיכומים -->
-  <div style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-left: 1px solid var(--border);">
-    <div class="stat">
-      <div class="stat-label">סיכומים</div>
-      <div style="display: flex; align-items: center; gap: 4px; justify-content: center;">
-        <input type="number" id="sikumimGoal" min="0" style="width: 32px; text-align: center; border: 1px solid var(--border); border-radius: 4px; font-size: 16px; font-weight: 700; font-family: inherit; padding: 2px;" onchange="saveSikumimGoal(this.value)">
-        <span style="font-size: 11px; color: var(--muted);">←</span>
-        <span style="font-size: 16px; font-weight: 700;" id="statSikumimDone">0</span>
-      </div>
-      <div class="stat-sub" style="font-size: 11px; color: var(--accent);">נשאר <span id="statSikumimLeft">0</span></div>
-    </div>
-  </div>
-  <!-- הדרכות -->
-  <div style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px;">
-    <div class="stat">
-      <div class="stat-label">הדרכות</div>
-      <div style="display: flex; align-items: center; gap: 4px; justify-content: center;">
-        <input type="number" id="hadrachotGoal" min="0" style="width: 32px; text-align: center; border: 1px solid var(--border); border-radius: 4px; font-size: 16px; font-weight: 700; font-family: inherit; padding: 2px;" onchange="saveHadrachotGoal(this.value)">
-        <span style="font-size: 11px; color: var(--muted);">←</span>
-        <span style="font-size: 16px; font-weight: 700;" id="statHadrachotDone">0</span>
-      </div>
-      <div class="stat-sub" style="font-size: 11px; color: var(--accent);">נשאר <span id="statHadrachotLeft">0</span></div>
-    </div>
   </div>
 </div>
 
@@ -904,13 +904,22 @@ function renderMonthly() {
 
     const dateStr = `${d.getDate()}/${d.getMonth() + 1}`;
 
+    const allOff = dayEntries.every(e => e.status === 'cancelled' || e.status === 'blank');
+
     html += `<div class="day-group">
-      <div class="day-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? '' : 'none'">
-        <span class="day-title">יום ${HEBREW_DAYS[dayOfWeek]} — ${dateStr}</span>
+      <div class="day-header">
+        <span class="day-title" onclick="this.parentElement.nextElementSibling.style.display = this.parentElement.nextElementSibling.style.display === 'none' ? '' : 'none'" style="cursor:pointer; flex:1;">יום ${HEBREW_DAYS[dayOfWeek]} — ${dateStr}</span>
         <span class="day-summary">
           <span>תפוקות: <span class="count">${dayTafukot}</span></span>
           ${dayNotLogged > 0 ? `<span style="color:var(--red)">לא נרשם: ${dayNotLogged}</span>` : ''}
         </span>
+        <select onchange="markDayOff('${date}', this.value)" style="font-size: 11px; padding: 2px 4px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; background: ${allOff ? 'var(--pink)' : 'var(--surface)'}; cursor: pointer;">
+          <option value="">—</option>
+          <option value="מחלה">מחלה</option>
+          <option value="חופש">חופש</option>
+          <option value="השתלמות">השתלמות</option>
+          <option value="אחר">אחר</option>
+        </select>
       </div>
       <div class="day-entries">`;
 
@@ -1083,6 +1092,20 @@ async function deleteShelet(id) {
   sheletEntries = sheletEntries.filter(e => e.id !== id);
   updateSummary();
   renderShelet();
+}
+
+// ── Mark Day Off ──
+async function markDayOff(date, reason) {
+  if (!reason) return;
+  const dayEntries = entries.filter(e => e.date === date);
+  for (const entry of dayEntries) {
+    await sb.from('ot_entries').update({ status: 'cancelled', tafukti: 0, notes: reason }).eq('id', entry.id);
+    entry.status = 'cancelled';
+    entry.tafukti = 0;
+    entry.notes = reason;
+  }
+  updateSummary();
+  renderMonthly();
 }
 
 // ── Render Todos ──
