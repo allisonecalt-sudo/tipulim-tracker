@@ -587,28 +587,16 @@ body {
 </div>
 
 <!-- Summary Ribbon -->
-<div class="summary" id="summary">
+<div class="summary" id="summary" style="grid-template-columns: 1fr 1fr;">
   <div class="stat">
     <div class="stat-label">תפוקות</div>
     <div class="stat-value" id="statTafukot">-</div>
     <div class="stat-sub" id="statTafukotSub"></div>
-    <div class="progress-bar"><div class="progress-fill" id="tafukotProgress"></div></div>
-  </div>
-  <div class="stat">
-    <div class="stat-label">נרשם בקליקס</div>
-    <div class="stat-value" id="statLogged">-</div>
-    <div class="stat-sub" id="statLoggedSub"></div>
-  </div>
-  <div class="stat">
-    <div class="stat-label">לא נרשם!</div>
-    <div class="stat-value" id="statNotLogged">-</div>
-    <div class="stat-sub" id="statNotLoggedSub"></div>
   </div>
   <div class="stat">
     <div class="stat-label">שלטים</div>
     <div class="stat-value" id="statShelet">-</div>
     <div class="stat-sub" id="statSheletSub"></div>
-    <div class="progress-bar"><div class="progress-fill" id="sheletProgress"></div></div>
   </div>
 </div>
 
@@ -785,34 +773,19 @@ function updateSummary() {
 
   const logged = entries.filter(e => e.status === 'logged').reduce((s, e) => s + e.tafukti, 0);
   const notLogged = entries.filter(e => e.status === 'done_not_logged').reduce((s, e) => s + e.tafukti, 0);
-  const done = logged + notLogged;
+  // תפוקות: total of all 1s on the page / goal
+  const total = entries.reduce((s, e) => s + e.tafukti, 0);
   const target = monthData.tafukot_target;
-  const rolloverIn = monthData.rollover_in || 0;
-  const projected = monthData.projected_total || 0;
-  const effectiveTotal = projected + rolloverIn;
+  document.getElementById('statTafukot').textContent = `${total} / ${target}`;
+  document.getElementById('statTafukot').className = 'stat-value' + (total >= target ? '' : ' warning');
+  document.getElementById('statTafukotSub').textContent = total >= target ? `עודף ${total - target}` : `חסר ${target - total}`;
 
-  document.getElementById('statTafukot').textContent = `${effectiveTotal} / ${target}`;
-  document.getElementById('statTafukot').className = 'stat-value' + (effectiveTotal < target ? ' warning' : '');
-  document.getElementById('statTafukotSub').textContent =
-    `${done} בוצע · צפי ${projected}` + (rolloverIn > 0 ? ` + ${rolloverIn} גלגול` : '');
-  document.getElementById('tafukotProgress').style.width = `${Math.min(100, (effectiveTotal / target) * 100)}%`;
-
-  document.getElementById('statLogged').textContent = logged;
-  document.getElementById('statLoggedSub').textContent = `מתוך ${done} שבוצעו`;
-
-  const el = document.getElementById('statNotLogged');
-  el.textContent = notLogged;
-  el.className = 'stat-value' + (notLogged > 0 ? ' danger' : '');
-  document.getElementById('statNotLoggedSub').textContent = notLogged > 0 ? 'לרשום בקליקס!' : '';
-
-  // Shelet
+  // שלטים: done / goal
   const sheletTarget = monthData.shelet_target || 12;
   const sheletCount = sheletEntries.length;
-  const sheletHours = sheletEntries.reduce((s, e) => s + parseFloat(e.hours || 0), 0);
   document.getElementById('statShelet').textContent = `${sheletCount} / ${sheletTarget}`;
-  document.getElementById('statShelet').className = 'stat-value' + (sheletCount < sheletTarget ? ' warning' : '');
-  document.getElementById('statSheletSub').textContent = `${sheletHours} שעות`;
-  document.getElementById('sheletProgress').style.width = `${Math.min(100, (sheletCount / sheletTarget) * 100)}%`;
+  document.getElementById('statShelet').className = 'stat-value' + (sheletCount >= sheletTarget ? '' : ' warning');
+  document.getElementById('statSheletSub').textContent = sheletCount >= sheletTarget ? `עודף ${sheletCount - sheletTarget}` : `חסר ${sheletTarget - sheletCount}`;
 }
 
 // ── Render Monthly ──
