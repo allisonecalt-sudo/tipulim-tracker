@@ -289,22 +289,26 @@ body {
 .entry-code.code-50042 { background: #fff3cd; color: #856404; }
 .entry-code.code-50038 { background: #fce4ec; color: #c06070; }
 
-.entry-status {
+.entry-status-select {
   font-size: 11px;
-  padding: 4px 8px;
-  border-radius: 12px;
+  padding: 4px 4px;
+  border-radius: 8px;
   text-align: center;
+  font-weight: 600;
+  font-family: inherit;
   cursor: pointer;
-  user-select: none;
-  font-weight: 500;
-  white-space: nowrap;
+  border: none;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  direction: rtl;
 }
 
-.entry-status.s-projected { background: var(--yellow); color: var(--yellow-dark); }
-.entry-status.s-done_not_logged { background: var(--pink); color: var(--pink-dark); }
-.entry-status.s-logged { background: var(--green-light); color: var(--green); }
-.entry-status.s-cancelled { background: #e9ecef; color: #6c757d; }
-.entry-status.s-blank { background: #f0f0f0; color: #aaa; }
+.entry-status-select.s-projected { background: var(--yellow); color: var(--yellow-dark); }
+.entry-status-select.s-done_not_logged { background: var(--pink); color: var(--pink-dark); }
+.entry-status-select.s-logged { background: var(--green-light); color: var(--green); }
+.entry-status-select.s-cancelled { background: #e9ecef; color: #6c757d; }
+.entry-status-select.s-blank { background: #f0f0f0; color: #aaa; }
 
 .entry-tafuka {
   width: 28px;
@@ -855,7 +859,13 @@ function renderMonthly() {
                  onchange="updateEntryName('${entry.id}', this.value)"
                  onfocus="this.select()">
           <span class="entry-code ${codeClass}" onclick="cycleCode('${entry.id}')">${entry.treatment_code}</span>
-          <span class="entry-status s-${entry.status}" onclick="cycleStatus('${entry.id}')">${STATUS_LABELS[entry.status]}</span>
+          <select class="entry-status-select s-${entry.status}" onchange="changeStatus('${entry.id}', this.value)">
+            <option value="projected" ${entry.status === 'projected' ? 'selected' : ''}>צפוי</option>
+            <option value="done_not_logged" ${entry.status === 'done_not_logged' ? 'selected' : ''}>לא נרשם!</option>
+            <option value="logged" ${entry.status === 'logged' ? 'selected' : ''}>נרשם ✓</option>
+            <option value="cancelled" ${entry.status === 'cancelled' ? 'selected' : ''}>בוטל</option>
+            <option value="blank" ${entry.status === 'blank' ? 'selected' : ''}>ריק</option>
+          </select>
           <span class="entry-tafuka t-${entry.tafukti}" onclick="toggleTafuka('${entry.id}')">${entry.tafukti}</span>
         </div>`;
     });
@@ -920,14 +930,10 @@ function switchTab(tab) {
 }
 
 // ── Entry Actions ──
-async function cycleStatus(id) {
+async function changeStatus(id, newStatus) {
   const entry = entries.find(e => e.id === id);
   if (!entry) return;
 
-  const currentIdx = STATUS_CYCLE.indexOf(entry.status);
-  const newStatus = STATUS_CYCLE[(currentIdx + 1) % STATUS_CYCLE.length];
-
-  // Auto-set tafukti based on status
   let newTafukti = 1;
   if (newStatus === 'cancelled' || newStatus === 'blank') newTafukti = 0;
 
