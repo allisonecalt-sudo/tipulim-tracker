@@ -188,7 +188,7 @@ body {
 
 .day-header {
   background: var(--surface);
-  padding: 10px 16px;
+  padding: 6px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -220,13 +220,13 @@ body {
 /* ── Entry Row ── */
 .entry-row {
   background: var(--surface);
-  padding: 8px 16px;
+  padding: 3px 16px;
   display: grid;
-  grid-template-columns: 50px 1fr 70px 90px 36px;
+  grid-template-columns: 50px 1fr 70px 90px 28px;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   border-bottom: 1px solid var(--border);
-  min-height: 48px;
+  min-height: 32px;
   transition: background .2s;
 }
 
@@ -247,7 +247,7 @@ body {
 }
 
 .entry-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   border: none;
   background: transparent;
@@ -305,13 +305,13 @@ body {
 .entry-status-select.s-blank { background: #f0f0f0; color: #aaa; }
 
 .entry-tafuka {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   user-select: none;
@@ -563,9 +563,9 @@ body {
 /* ── Responsive ── */
 @media (max-width: 500px) {
   .entry-row {
-    grid-template-columns: 42px 1fr 55px 70px 28px;
-    gap: 4px;
-    padding: 6px 10px;
+    grid-template-columns: 38px 1fr 50px 65px 24px;
+    gap: 3px;
+    padding: 2px 8px;
   }
   .header { padding: 10px 12px; }
   .summary { padding: 10px 12px; grid-template-columns: repeat(2, 1fr); }
