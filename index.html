@@ -587,16 +587,30 @@ body {
 </div>
 
 <!-- Summary Ribbon -->
-<div class="summary" id="summary" style="grid-template-columns: 1fr 1fr;">
-  <div class="stat">
-    <div class="stat-label">תפוקות</div>
-    <div class="stat-value" id="statTafukot">-</div>
-    <div class="stat-sub" id="statTafukotSub"></div>
+<div class="summary" id="summary" style="grid-template-columns: 1fr 1fr; gap: 0;">
+  <div style="display: flex; align-items: center; justify-content: center; gap: 16px; padding: 12px; border-left: 1px solid var(--border);">
+    <div class="stat">
+      <div class="stat-label">יעד</div>
+      <div class="stat-value" id="statTafukotGoal">-</div>
+    </div>
+    <div style="font-size: 12px; color: var(--muted); padding-top: 16px;">←</div>
+    <div class="stat">
+      <div class="stat-label">תפוקות</div>
+      <div class="stat-value" id="statTafukotTotal">-</div>
+    </div>
+    <div class="stat" id="statTafukotDiff" style="padding-top: 16px;"></div>
   </div>
-  <div class="stat">
-    <div class="stat-label">שלטים</div>
-    <div class="stat-value" id="statShelet">-</div>
-    <div class="stat-sub" id="statSheletSub"></div>
+  <div style="display: flex; align-items: center; justify-content: center; gap: 16px; padding: 12px;">
+    <div class="stat">
+      <div class="stat-label">יעד</div>
+      <div class="stat-value" id="statSheletGoal">-</div>
+    </div>
+    <div style="font-size: 12px; color: var(--muted); padding-top: 16px;">←</div>
+    <div class="stat">
+      <div class="stat-label">שלטים</div>
+      <div class="stat-value" id="statSheletTotal">-</div>
+    </div>
+    <div class="stat" id="statSheletDiff" style="padding-top: 16px;"></div>
   </div>
 </div>
 
@@ -780,21 +794,35 @@ function selectMonth(val) {
 function updateSummary() {
   if (!monthData) return;
 
-  const logged = entries.filter(e => e.status === 'logged').reduce((s, e) => s + e.tafukti, 0);
-  const notLogged = entries.filter(e => e.status === 'done_not_logged').reduce((s, e) => s + e.tafukti, 0);
-  // תפוקות: total of all 1s on the page / goal
+  // תפוקות
   const total = entries.reduce((s, e) => s + e.tafukti, 0);
   const target = monthData.tafukot_target;
-  document.getElementById('statTafukot').textContent = `${total} / ${target}`;
-  document.getElementById('statTafukot').className = 'stat-value' + (total >= target ? '' : ' warning');
-  document.getElementById('statTafukotSub').textContent = total >= target ? `עודף ${total - target}` : `חסר ${target - total}`;
+  const tDiff = total - target;
+  document.getElementById('statTafukotGoal').textContent = target;
+  document.getElementById('statTafukotTotal').textContent = total;
+  const tDiffEl = document.getElementById('statTafukotDiff');
+  if (tDiff > 0) {
+    tDiffEl.innerHTML = `<span style="color: var(--green); font-size: 13px; font-weight: 600;">+${tDiff}</span>`;
+  } else if (tDiff < 0) {
+    tDiffEl.innerHTML = `<span style="color: var(--red); font-size: 13px; font-weight: 600;">${tDiff}</span>`;
+  } else {
+    tDiffEl.innerHTML = `<span style="color: var(--green); font-size: 13px; font-weight: 600;">✓</span>`;
+  }
 
-  // שלטים: done / goal
+  // שלטים
   const sheletTarget = monthData.shelet_target || 12;
   const sheletCount = sheletEntries.length;
-  document.getElementById('statShelet').textContent = `${sheletCount} / ${sheletTarget}`;
-  document.getElementById('statShelet').className = 'stat-value' + (sheletCount >= sheletTarget ? '' : ' warning');
-  document.getElementById('statSheletSub').textContent = sheletCount >= sheletTarget ? `עודף ${sheletCount - sheletTarget}` : `חסר ${sheletTarget - sheletCount}`;
+  const sDiff = sheletCount - sheletTarget;
+  document.getElementById('statSheletGoal').textContent = sheletTarget;
+  document.getElementById('statSheletTotal').textContent = sheletCount;
+  const sDiffEl = document.getElementById('statSheletDiff');
+  if (sDiff > 0) {
+    sDiffEl.innerHTML = `<span style="color: var(--green); font-size: 13px; font-weight: 600;">+${sDiff}</span>`;
+  } else if (sDiff < 0) {
+    sDiffEl.innerHTML = `<span style="color: var(--red); font-size: 13px; font-weight: 600;">${sDiff}</span>`;
+  } else {
+    sDiffEl.innerHTML = `<span style="color: var(--green); font-size: 13px; font-weight: 600;">✓</span>`;
+  }
 }
 
 // ── Render Monthly ──
