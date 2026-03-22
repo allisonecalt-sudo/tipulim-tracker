@@ -587,8 +587,9 @@ body {
 </div>
 
 <!-- Summary Ribbon -->
-<div class="summary" id="summary" style="grid-template-columns: 1fr 1fr; gap: 0;">
-  <div style="display: flex; align-items: center; justify-content: center; gap: 16px; padding: 12px; border-left: 1px solid var(--border);">
+<div class="summary" id="summary" style="grid-template-columns: repeat(4, 1fr); gap: 0;">
+  <!-- תפוקות -->
+  <div style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px; border-left: 1px solid var(--border);">
     <div class="stat">
       <div class="stat-label">יעד</div>
       <div class="stat-value" id="statTafukotGoal">-</div>
@@ -600,7 +601,8 @@ body {
     </div>
     <div class="stat" id="statTafukotDiff" style="padding-top: 16px;"></div>
   </div>
-  <div style="display: flex; align-items: center; justify-content: center; gap: 16px; padding: 12px;">
+  <!-- שלטים -->
+  <div style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px; border-left: 1px solid var(--border);">
     <div class="stat">
       <div class="stat-label">יעד</div>
       <div class="stat-value" id="statSheletGoal">-</div>
@@ -612,16 +614,29 @@ body {
     </div>
     <div class="stat" id="statSheletDiff" style="padding-top: 16px;"></div>
   </div>
-</div>
-<!-- Backup Options Ribbon -->
-<div style="background: var(--surface); border-bottom: 1px solid var(--border); padding: 8px 16px; display: flex; justify-content: center; gap: 24px;">
-  <div style="display: flex; align-items: center; gap: 6px;">
-    <span style="font-size: 12px; color: var(--muted);">סיכומים (50038)</span>
-    <span class="entry-code code-50038" style="font-size: 13px; font-weight: 700; cursor: default;" id="statSikumim">0</span>
+  <!-- סיכומים -->
+  <div style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-left: 1px solid var(--border);">
+    <div class="stat">
+      <div class="stat-label">סיכומים</div>
+      <div style="display: flex; align-items: center; gap: 4px; justify-content: center;">
+        <input type="number" id="sikumimGoal" min="0" style="width: 32px; text-align: center; border: 1px solid var(--border); border-radius: 4px; font-size: 16px; font-weight: 700; font-family: inherit; padding: 2px;" onchange="saveSikumimGoal(this.value)">
+        <span style="font-size: 11px; color: var(--muted);">←</span>
+        <span style="font-size: 16px; font-weight: 700;" id="statSikumimDone">0</span>
+      </div>
+      <div class="stat-sub" style="font-size: 11px; color: var(--accent);">נשאר <span id="statSikumimLeft">0</span></div>
+    </div>
   </div>
-  <div style="display: flex; align-items: center; gap: 6px;">
-    <span style="font-size: 12px; color: var(--muted);">הדרכות (50016)</span>
-    <span class="entry-code code-50016" style="font-size: 13px; font-weight: 700; cursor: default;" id="statHadrachot">0</span>
+  <!-- הדרכות -->
+  <div style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px;">
+    <div class="stat">
+      <div class="stat-label">הדרכות</div>
+      <div style="display: flex; align-items: center; gap: 4px; justify-content: center;">
+        <input type="number" id="hadrachotGoal" min="0" style="width: 32px; text-align: center; border: 1px solid var(--border); border-radius: 4px; font-size: 16px; font-weight: 700; font-family: inherit; padding: 2px;" onchange="saveHadrachotGoal(this.value)">
+        <span style="font-size: 11px; color: var(--muted);">←</span>
+        <span style="font-size: 16px; font-weight: 700;" id="statHadrachotDone">0</span>
+      </div>
+      <div class="stat-sub" style="font-size: 11px; color: var(--accent);">נשאר <span id="statHadrachotLeft">0</span></div>
+    </div>
   </div>
 </div>
 
@@ -835,16 +850,18 @@ function updateSummary() {
     sDiffEl.innerHTML = `<span style="color: var(--green); font-size: 13px; font-weight: 600;">✓</span>`;
   }
 
-  // Backup options: projected minus already logged
-  const sikumimAvail = monthData.sikumim_available || 0;
-  const sikumimUsed = entries.filter(e => e.treatment_code === 50038 && e.tafukti === 1).length;
-  const sikumimLeft = Math.max(0, sikumimAvail - sikumimUsed);
-  document.getElementById('statSikumim').textContent = `${sikumimLeft} / ${sikumimAvail}`;
+  // Backup options
+  const sikumimGoal = monthData.sikumim_available || 0;
+  const sikumimDone = entries.filter(e => e.treatment_code === 50038 && e.tafukti === 1).length;
+  document.getElementById('sikumimGoal').value = sikumimGoal;
+  document.getElementById('statSikumimDone').textContent = sikumimDone;
+  document.getElementById('statSikumimLeft').textContent = Math.max(0, sikumimGoal - sikumimDone);
 
-  const hadrachotAvail = monthData.extra_hadrachot || 0;
-  const hadrachotUsed = entries.filter(e => e.treatment_code === 50016 && e.tafukti === 1).length;
-  const hadrachotLeft = Math.max(0, hadrachotAvail - hadrachotUsed);
-  document.getElementById('statHadrachot').textContent = `${hadrachotLeft} / ${hadrachotAvail}`;
+  const hadrachotGoal = monthData.extra_hadrachot || 0;
+  const hadrachotDone = entries.filter(e => e.treatment_code === 50016 && e.tafukti === 1).length;
+  document.getElementById('hadrachotGoal').value = hadrachotGoal;
+  document.getElementById('statHadrachotDone').textContent = hadrachotDone;
+  document.getElementById('statHadrachotLeft').textContent = Math.max(0, hadrachotGoal - hadrachotDone);
 }
 
 // ── Render Monthly ──
@@ -1453,6 +1470,20 @@ async function saveSettings() {
   Object.assign(monthData, updates);
   updateSummary();
   closeModal('settingsModal');
+}
+
+async function saveSikumimGoal(val) {
+  const v = parseInt(val) || 0;
+  await sb.from('ot_months').update({ sikumim_available: v }).eq('id', monthData.id);
+  monthData.sikumim_available = v;
+  updateSummary();
+}
+
+async function saveHadrachotGoal(val) {
+  const v = parseInt(val) || 0;
+  await sb.from('ot_months').update({ extra_hadrachot: v }).eq('id', monthData.id);
+  monthData.extra_hadrachot = v;
+  updateSummary();
 }
 
 // ── Helpers ──
