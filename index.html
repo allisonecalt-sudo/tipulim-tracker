@@ -615,6 +615,7 @@ body {
 <!-- Tabs -->
 <div class="tabs">
   <button class="tab active" data-tab="monthly" onclick="switchTab('monthly')">חודשי</button>
+  <button class="tab" data-tab="shelet" onclick="switchTab('shelet')">שלטים</button>
   <button class="tab" data-tab="kids" onclick="switchTab('kids')">ילדים</button>
 </div>
 
@@ -710,6 +711,7 @@ let monthData = null;
 let entries = [];
 let kids = [];
 let codes = [];
+let sheletEntries = [];
 let activeTab = 'monthly';
 let debounceTimers = {};
 
@@ -740,9 +742,15 @@ async function loadMonth(year, month) {
   const { data: ents } = await sb.from('ot_entries').select('*, ot_kids(name)').eq('month_id', monthData.id).order('date').order('time_slot').order('sort_order');
   entries = ents || [];
 
+  // Load shelet entries
+  const { data: shelets } = await sb.from('ot_shelet_entries').select('*').eq('month_id', monthData.id).order('date');
+  sheletEntries = shelets || [];
+
   updateMonthLabel();
   updateSummary();
-  renderMonthly();
+  if (activeTab === 'monthly') renderMonthly();
+  else if (activeTab === 'shelet') renderShelet();
+  else if (activeTab === 'kids') renderKids();
   updateSettingsForm();
 }
 
@@ -797,11 +805,14 @@ function updateSummary() {
   el.className = 'stat-value' + (notLogged > 0 ? ' danger' : '');
   document.getElementById('statNotLoggedSub').textContent = notLogged > 0 ? 'לרשום בקליקס!' : '';
 
-  // Shelet — count entries with notes containing שלט, or we can track separately
+  // Shelet
   const sheletTarget = monthData.shelet_target || 12;
-  document.getElementById('statShelet').textContent = `- / ${sheletTarget}`;
-  document.getElementById('statSheletSub').textContent = 'מעקב ידני';
-  document.getElementById('sheletProgress').style.width = '0%';
+  const sheletCount = sheletEntries.length;
+  const sheletHours = sheletEntries.reduce((s, e) => s + parseFloat(e.hours || 0), 0);
+  document.getElementById('statShelet').textContent = `${sheletCount} / ${sheletTarget}`;
+  document.getElementById('statShelet').className = 'stat-value' + (sheletCount < sheletTarget ? ' warning' : '');
+  document.getElementById('statSheletSub').textContent = `${sheletHours} שעות`;
+  document.getElementById('sheletProgress').style.width = `${Math.min(100, (sheletCount / sheletTarget) * 100)}%`;
 }
 
 // ── Render Monthly ──
@@ -928,11 +939,109 @@ function renderKids() {
   content.innerHTML = html;
 }
 
+// ── Render Shelet ──
+function renderShelet() {
+  const content = document.getElementById('content');
+  const target = monthData.shelet_target || 12;
+  const count = sheletEntries.length;
+  const totalHours = sheletEntries.reduce((s, e) => s + parseFloat(e.hours || 0), 0);
+
+  let html = `
+    <div style="padding: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h2 style="font-size: 18px;">שלטים — ${count} / ${target}</h2>
+        <span style="color: var(--muted); font-size: 14px;">${totalHours} שעות</span>
+      </div>
+      <div class="progress-bar" style="height: 8px; margin-bottom: 16px;">
+        <div class="progress-fill" style="width: ${Math.min(100, (count / target) * 100)}%"></div>
+      </div>`;
+
+  // Add new shelet form
+  html += `
+    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 16px;">
+      <div style="display: grid; grid-template-columns: 1fr 2fr 80px auto; gap: 8px; align-items: end;">
+        <div>
+          <label style="font-size: 12px; color: var(--muted); display: block;">תאריך</label>
+          <input type="date" id="sheletDate" style="width: 100%; padding: 6px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit;">
+        </div>
+        <div>
+          <label style="font-size: 12px; color: var(--muted); display: block;">פעילות</label>
+          <input type="text" id="sheletDesc" placeholder="תיאור הפעילות" style="width: 100%; padding: 6px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; direction: rtl;">
+        </div>
+        <div>
+          <label style="font-size: 12px; color: var(--muted); display: block;">שעות</label>
+          <input type="number" id="sheletHours" value="1" min="0.5" step="0.5" style="width: 100%; padding: 6px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit;">
+        </div>
+        <button class="btn btn-primary" onclick="addShelet()" style="height: 36px;">+</button>
+      </div>
+    </div>`;
+
+  // List existing entries
+  if (sheletEntries.length === 0) {
+    html += `<div style="text-align: center; padding: 40px; color: var(--muted);">אין שלטים עדיין</div>`;
+  } else {
+    html += `<div style="display: flex; flex-direction: column; gap: 4px;">`;
+    sheletEntries.forEach(entry => {
+      const d = new Date(entry.date + 'T00:00:00');
+      const dateStr = `${d.getDate()}/${d.getMonth() + 1}`;
+      html += `
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 13px; color: var(--muted); min-width: 40px;">${dateStr}</span>
+            <span style="font-size: 14px; font-weight: 500;">${escHtml(entry.description)}</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 13px; color: var(--accent); font-weight: 600;">${entry.hours} שע׳</span>
+            <button onclick="deleteShelet('${entry.id}')" style="background: none; border: none; color: var(--red); cursor: pointer; font-size: 16px;">✕</button>
+          </div>
+        </div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `</div>`;
+  content.innerHTML = html;
+
+  // Set default date to today
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  document.getElementById('sheletDate').value = todayStr;
+}
+
+async function addShelet() {
+  const date = document.getElementById('sheletDate').value;
+  const desc = document.getElementById('sheletDesc').value.trim();
+  const hours = parseFloat(document.getElementById('sheletHours').value) || 1;
+
+  if (!date || !desc) { alert('מלאי תאריך ותיאור'); return; }
+
+  const { data, error } = await sb.from('ot_shelet_entries').insert({
+    month_id: monthData.id,
+    date,
+    description: desc,
+    hours
+  }).select().single();
+
+  if (error) { alert('שגיאה: ' + error.message); return; }
+
+  sheletEntries.push(data);
+  updateSummary();
+  renderShelet();
+}
+
+async function deleteShelet(id) {
+  await sb.from('ot_shelet_entries').delete().eq('id', id);
+  sheletEntries = sheletEntries.filter(e => e.id !== id);
+  updateSummary();
+  renderShelet();
+}
+
 // ── Tab Switching ──
 function switchTab(tab) {
   activeTab = tab;
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   if (tab === 'monthly') renderMonthly();
+  else if (tab === 'shelet') renderShelet();
   else if (tab === 'kids') renderKids();
 }
 
