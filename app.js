@@ -101,7 +101,6 @@ async function loadMonth(year, month) {
   if (activeTab === 'monthly') renderMonthly();
   else if (activeTab === 'shelet') renderShelet();
   else if (activeTab === 'kids') renderKids();
-  updateSettingsForm(); // eslint-disable-line no-undef -- function removed, call is harmless
 }
 
 function updateMonthLabel() {
